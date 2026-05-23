@@ -1,0 +1,8 @@
+# Cloudflare Pages config for sblossom-ops.
+# Phase 1.5 will wire up the actual project name + KV/D1 bindings (we use neither;
+# only env vars). For now this file exists so `pages dev` / `pages deploy` work.
+
+name = "sblossom-ops"
+compatibility_date = "2025-01-09"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
