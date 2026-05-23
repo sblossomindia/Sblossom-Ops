@@ -52,3 +52,20 @@ export function last10Digits(e164: string): string {
   if (digits.length < 10) throw new PhoneFormatError(e164);
   return digits.slice(-10);
 }
+
+/**
+ * Splits an E.164 phone into the shape Interakt's API expects:
+ *   countryCode: "+91" (with the leading +)
+ *   phoneNumber: "9876543210" (national number, no + or leading 0)
+ *
+ * Assumes 10-digit subscriber numbers (the global norm; matches Indian usage).
+ */
+export function splitE164(e164: string): { countryCode: string; phoneNumber: string } {
+  if (!e164.startsWith('+')) throw new PhoneFormatError(e164);
+  const digits = e164.slice(1);
+  if (!/^\d{11,15}$/.test(digits)) throw new PhoneFormatError(e164);
+  return {
+    countryCode: `+${digits.slice(0, -10)}`,
+    phoneNumber: digits.slice(-10),
+  };
+}

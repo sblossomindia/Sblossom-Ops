@@ -38,6 +38,11 @@ export const authConfig = {
       }
 
       if (!isLoggedIn) {
+        // For API routes, return 401 JSON. Redirecting an API fetch to /login
+        // makes the caller see 200 HTML — confusing for client code.
+        if (path.startsWith('/api/')) {
+          return Response.json({ error: 'unauthorized' }, { status: 401 });
+        }
         const callback = encodeURIComponent(path + nextUrl.search);
         return Response.redirect(new URL(`/login?callbackUrl=${callback}`, nextUrl));
       }
