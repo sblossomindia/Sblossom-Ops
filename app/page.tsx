@@ -25,6 +25,12 @@ export default async function Home() {
         >
           Tab 1 — Order Create →
         </a>
+        <a
+          href="/orders/in-production"
+          className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-secondary"
+        >
+          Tab 2 — In Production →
+        </a>
       </nav>
 
       <form
