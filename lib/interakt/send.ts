@@ -97,6 +97,40 @@ export async function scheduleNotification(
 }
 
 /**
+ * Dispatch a notifications_log row that's already been inserted (status =
+ * 'queued'). Used by the state machine when it has pre-inserted a row inside
+ * a transaction for the dedup gate, and by the cron after claiming a
+ * scheduled row.
+ *
+ * Updates the row to `sent` or `failed` based on the result.
+ */
+export async function dispatchById(notificationId: string): Promise<InteraktResult> {
+  const [row] = await db
+    .select()
+    .from(notificationsLog)
+    .where(eq(notificationsLog.id, notificationId))
+    .limit(1);
+  if (!row) throw new Error(`notification ${notificationId} not found`);
+  if (row.status !== 'queued') {
+    throw new Error(`notification ${notificationId} not in 'queued' state (got '${row.status}')`);
+  }
+
+  const result = await callInterakt(row.payload as InteraktPayload);
+
+  await db
+    .update(notificationsLog)
+    .set({
+      status: result.ok ? 'sent' : 'failed',
+      response: (result.response ?? null) as object | null,
+      sentAt: result.ok ? new Date() : null,
+      errorMessage: result.ok ? null : result.error,
+    })
+    .where(eq(notificationsLog.id, notificationId));
+
+  return result;
+}
+
+/**
  * Cancel a previously scheduled notification. Used when the QC grace timer
  * resets (task 2.2) — delete the old scheduled row and insert a fresh one.
  * Returns the count of rows transitioned.

@@ -15,8 +15,18 @@ export default async function Home() {
         </span>
       </p>
       <p className="text-sm text-muted-foreground">
-        Tabs land in tasks 1.10 onward — this placeholder confirms auth is wired.
+        Placeholder dashboard. Real nav lands in Phase 4.
       </p>
+
+      <nav className="flex flex-wrap items-center justify-center gap-3">
+        <a
+          href="/orders/new"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          Tab 1 — Order Create →
+        </a>
+      </nav>
+
       <form
         action={async () => {
           'use server';
