@@ -33,9 +33,9 @@ const schema = z.object({
   CF_API_TOKEN: z.string().optional(),
 
   // Shopify — required from 1.6.
-  SHOPIFY_STORE_DOMAIN: z.string().optional(),
-  SHOPIFY_ADMIN_ACCESS_TOKEN: z.string().optional(),
-  SHOPIFY_WEBHOOK_SECRET: z.string().optional(),
+  SHOPIFY_STORE_DOMAIN: z.string().min(1, 'SHOPIFY_STORE_DOMAIN is required (e.g. sblossom.myshopify.com)'),
+  SHOPIFY_ADMIN_ACCESS_TOKEN: z.string().min(1, 'SHOPIFY_ADMIN_ACCESS_TOKEN is required'),
+  SHOPIFY_WEBHOOK_SECRET: z.string().min(1, 'SHOPIFY_WEBHOOK_SECRET is required'),
 
   // R2 — required from 1.7.
   R2_ACCOUNT_ID: z.string().optional(),

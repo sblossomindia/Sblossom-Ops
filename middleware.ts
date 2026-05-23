@@ -13,7 +13,10 @@ export default NextAuth(authConfig).auth;
 
 export const config = {
   matcher: [
-    // Skip Next internals, static files, the NextAuth API route, and common image extensions.
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|webp|ico|gif)$).*)',
+    // Skip Next internals, static files, and infrastructure API routes:
+    //   - /api/auth/*       NextAuth handlers (manage their own cookies)
+    //   - /api/webhooks/*   Inbound from Shopify/Interakt (HMAC-verified, no cookies)
+    //   - /api/cron/*       Cloudflare Cron Triggers (shared-secret auth, Phase 2.4)
+    '/((?!api/auth|api/webhooks|api/cron|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|webp|ico|gif)$).*)',
   ],
 };
