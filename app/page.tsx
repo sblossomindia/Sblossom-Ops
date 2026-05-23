@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/auth';
 export default async function Home() {
   const session = await requireSession();
   const { user } = session;
+  const isAdmin = user.role === 'admin';
 
   return (
     <main className="container flex min-h-screen flex-col items-center justify-center gap-6 py-16">
@@ -31,6 +32,14 @@ export default async function Home() {
         >
           Tab 2 — In Production →
         </a>
+        {isAdmin && (
+          <a
+            href="/admin/tags"
+            className="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-secondary"
+          >
+            Admin · Tags →
+          </a>
+        )}
       </nav>
 
       <form

@@ -1,10 +1,9 @@
 /**
- * Tab 2 detail — read-only view of one in-flight order. Mockup thumbnails
- * + PSD links are presigned R2 GET URLs (signed fresh every render; do not
- * cache).
+ * Tab 2 detail — view of one in-flight order. Mockup thumbnails + PSD links
+ * are presigned R2 GET URLs (signed fresh every render; do not cache).
  *
- * No edit actions. Replace-mockup, tag management, and delete are added in
- * tasks 1.12-1.14.
+ * Tag management lives in <TagChips />. Production + admin can edit; QC role
+ * sees chips read-only. Replace-mockup is task 1.13; delete is 1.14.
  */
 import { asc, eq } from 'drizzle-orm';
 import Link from 'next/link';
@@ -12,11 +11,13 @@ import { notFound } from 'next/navigation';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { requireRole } from '@/lib/auth';
+import { getSession, requireRole } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { orderItems, orderTags, orders } from '@/lib/db/schema';
+import { orderItems, orderTags, orders, tagDefinitions } from '@/lib/db/schema';
 import { formatINR, relativeTime } from '@/lib/format';
 import { getViewUrl } from '@/lib/storage/r2';
+
+import { TagChips } from './tag-chips';
 
 export default async function InProductionDetailPage({
   params,
@@ -68,15 +69,28 @@ export default async function InProductionDetailPage({
     })),
   );
 
-  const tags = await db
-    .select({
-      id: orderTags.id,
-      tagName: orderTags.tagName,
-      isCustomerVisible: orderTags.isCustomerVisible,
-    })
-    .from(orderTags)
-    .where(eq(orderTags.orderId, order.id))
-    .orderBy(asc(orderTags.tagName));
+  const [tags, definitions, session] = await Promise.all([
+    db
+      .select({
+        id: orderTags.id,
+        tagName: orderTags.tagName,
+        isCustomerVisible: orderTags.isCustomerVisible,
+      })
+      .from(orderTags)
+      .where(eq(orderTags.orderId, order.id))
+      .orderBy(asc(orderTags.tagName)),
+    db
+      .select({
+        name: tagDefinitions.name,
+        isCustomerVisibleDefault: tagDefinitions.isCustomerVisibleDefault,
+      })
+      .from(tagDefinitions)
+      .orderBy(asc(tagDefinitions.name)),
+    getSession(),
+  ]);
+
+  const canEditTags =
+    session?.user.role === 'production' || session?.user.role === 'admin';
 
   return (
     <main className="container max-w-3xl py-10">
@@ -141,19 +155,12 @@ export default async function InProductionDetailPage({
           <CardTitle className="text-base">Tags</CardTitle>
         </CardHeader>
         <CardContent>
-          {tags.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No tags. Add in Tab 2 → 1.12.</p>
-          ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {tags.map((tag) => (
-                <TagChip
-                  key={tag.id}
-                  name={tag.tagName}
-                  isCustomerVisible={tag.isCustomerVisible}
-                />
-              ))}
-            </div>
-          )}
+          <TagChips
+            orderId={order.id}
+            tags={tags}
+            definitions={definitions}
+            canEdit={canEditTags}
+          />
         </CardContent>
       </Card>
 
@@ -306,22 +313,6 @@ function QcBadge({ status }: { status: 'passed' | 'failed' | null }) {
   return (
     <Badge variant="outline" className="text-muted-foreground">
       Awaiting QC
-    </Badge>
-  );
-}
-
-function TagChip({ name, isCustomerVisible }: { name: string; isCustomerVisible: boolean }) {
-  return isCustomerVisible ? (
-    <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
-      {name}
-    </Badge>
-  ) : (
-    <Badge
-      variant="outline"
-      className="border-muted-foreground/30 text-muted-foreground"
-      title="Internal-only tag"
-    >
-      {name}
     </Badge>
   );
 }

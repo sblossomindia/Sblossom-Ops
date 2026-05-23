@@ -36,6 +36,8 @@ const schema = z.object({
   SHOPIFY_STORE_DOMAIN: z.string().min(1, 'SHOPIFY_STORE_DOMAIN is required (e.g. sblossom.myshopify.com)'),
   SHOPIFY_ADMIN_ACCESS_TOKEN: z.string().min(1, 'SHOPIFY_ADMIN_ACCESS_TOKEN is required'),
   SHOPIFY_WEBHOOK_SECRET: z.string().min(1, 'SHOPIFY_WEBHOOK_SECRET is required'),
+  // Skip outbound Shopify API calls (tag sync etc.) in dev when creds are placeholders.
+  MOCK_SHOPIFY: bool,
 
   // R2 — required from 1.7.
   R2_ACCOUNT_ID: z.string().min(1, 'R2_ACCOUNT_ID is required'),

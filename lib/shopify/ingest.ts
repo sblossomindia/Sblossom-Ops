@@ -16,6 +16,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { orders, orderItems } from '@/lib/db/schema';
 import { normalizePhone, PhoneFormatError } from '@/lib/phone';
+import { reconcileOrderTagsFromWebhook } from '@/lib/tags/sync';
 
 import {
   parseShopifyTags,
@@ -130,6 +131,11 @@ export async function ingestShopifyOrder(payload: OrderWebhookPayload): Promise<
         target: [orderItems.orderId, orderItems.shopifyLineItemId],
       });
   }
+
+  // Reconcile local order_tags rows against Shopify's tag set (pull direction).
+  // We do this for both create + update because a new order may have tags
+  // applied alongside the trigger tag.
+  await reconcileOrderTagsFromWebhook(orderId, tags);
 
   return { status: 'ingested', orderId, created };
 }
