@@ -1,4 +1,4 @@
-import { setupDevPlatform } from '@cloudflare/next-on-pages/next-dev';
+import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -8,11 +8,8 @@ const nextConfig = {
   },
 };
 
-if (process.env.NODE_ENV === 'development') {
-  await setupDevPlatform().catch(() => {
-    // setupDevPlatform is best-effort in `next dev`; ignore failures so a missing
-    // wrangler config doesn't block the dev server before Phase 1.5.
-  });
-}
+// Surface Cloudflare bindings (none yet — but R2/KV in later phases) inside
+// `next dev` via a Workers proxy. No-op when not invoked from `next dev`.
+initOpenNextCloudflareForDev();
 
 export default nextConfig;

@@ -24,8 +24,13 @@ const credentialsSchema = z.object({
   password: z.string().min(1),
 });
 
+// Strip the placeholder `providers: []` from authConfig so the compiled bundle
+// doesn't carry a duplicate key (esbuild warns otherwise — JS semantics are
+// fine, output is just noisy).
+const { providers: _placeholder, ...sharedConfig } = authConfig;
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  ...authConfig,
+  ...sharedConfig,
   providers: [
     Credentials({
       credentials: {

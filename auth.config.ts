@@ -69,5 +69,5 @@ export const authConfig = {
       return session;
     },
   },
-  providers: [], // Real providers live in auth.ts (Node runtime).
+  providers: [], // Required by NextAuthConfig. auth.ts replaces this (not merges).
 } satisfies NextAuthConfig;

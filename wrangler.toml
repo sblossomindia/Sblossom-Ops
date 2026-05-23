@@ -1,8 +1,12 @@
-# Cloudflare Pages config for sblossom-ops.
-# Phase 1.5 will wire up the actual project name + KV/D1 bindings (we use neither;
-# only env vars). For now this file exists so `pages dev` / `pages deploy` work.
+# Cloudflare Workers config for sblossom-ops (deployed via @opennextjs/cloudflare).
+# OpenNext builds a single Worker bundle at .open-next/worker.js + a static
+# asset directory at .open-next/assets.
 
 name = "sblossom-ops"
+main = ".open-next/worker.js"
 compatibility_date = "2025-01-09"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = ".vercel/output/static"
+
+[assets]
+binding = "ASSETS"
+directory = ".open-next/assets"
