@@ -17,6 +17,7 @@ import { orderItems, orderTags, orders, tagDefinitions } from '@/lib/db/schema';
 import { formatINR, relativeTime } from '@/lib/format';
 import { getViewUrl } from '@/lib/storage/r2';
 
+import { DeleteOrderButton } from './delete-order-button';
 import { ReplaceMockupDialog } from './replace-mockup-dialog';
 import { TagChips } from './tag-chips';
 
@@ -94,6 +95,9 @@ export default async function InProductionDetailPage({
     session?.user.role === 'production' || session?.user.role === 'admin';
   // Mockup replacement is pre-QC only — gate by both order state and role.
   const canReplaceMockup = canEditTags && order.state === 'in_production';
+  // Soft-delete is admin-only, pre-QC only. On Tab 2 that means 'in_production'
+  // (qc_passed is post-QC). The server action re-checks both gates.
+  const canDelete = session?.user.role === 'admin' && order.state === 'in_production';
 
   return (
     <main className="container max-w-3xl py-10">
@@ -191,6 +195,17 @@ export default async function InProductionDetailPage({
           ))}
         </div>
       </section>
+
+      {canDelete && (
+        <section className="mt-10 border-t pt-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm text-muted-foreground">
+              Admin · Pre-QC only · Removes the order from production tabs. Shopify is untouched.
+            </div>
+            <DeleteOrderButton orderId={order.id} orderName={order.shopifyOrderName} />
+          </div>
+        </section>
+      )}
     </main>
   );
 }
