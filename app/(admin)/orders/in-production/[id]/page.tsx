@@ -17,6 +17,7 @@ import { orderItems, orderTags, orders, tagDefinitions } from '@/lib/db/schema';
 import { formatINR, relativeTime } from '@/lib/format';
 import { getViewUrl } from '@/lib/storage/r2';
 
+import { ReplaceMockupDialog } from './replace-mockup-dialog';
 import { TagChips } from './tag-chips';
 
 export default async function InProductionDetailPage({
@@ -91,6 +92,8 @@ export default async function InProductionDetailPage({
 
   const canEditTags =
     session?.user.role === 'production' || session?.user.role === 'admin';
+  // Mockup replacement is pre-QC only — gate by both order state and role.
+  const canReplaceMockup = canEditTags && order.state === 'in_production';
 
   return (
     <main className="container max-w-3xl py-10">
@@ -169,7 +172,22 @@ export default async function InProductionDetailPage({
         <h2 className="mb-3 text-lg font-semibold">Line items</h2>
         <div className="space-y-4">
           {itemsWithUrls.map((item) => (
-            <ItemCard key={item.id} item={item} />
+            <ItemCard
+              key={item.id}
+              item={item}
+              replaceTrigger={
+                canReplaceMockup ? (
+                  <ReplaceMockupDialog
+                    orderItemId={item.id}
+                    orderItemTitle={
+                      item.title +
+                      (item.variantTitle ? ` — ${item.variantTitle}` : '') +
+                      (item.quantity > 1 ? ` × ${item.quantity}` : '')
+                    }
+                  />
+                ) : null
+              }
+            />
           ))}
         </div>
       </section>
@@ -191,7 +209,13 @@ interface ItemWithUrls {
   sourceViewUrl: string | null;
 }
 
-function ItemCard({ item }: { item: ItemWithUrls }) {
+function ItemCard({
+  item,
+  replaceTrigger,
+}: {
+  item: ItemWithUrls;
+  replaceTrigger?: React.ReactNode;
+}) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -276,6 +300,9 @@ function ItemCard({ item }: { item: ItemWithUrls }) {
             )}
           </dl>
         </div>
+        {replaceTrigger && (
+          <div className="mt-4 flex justify-end border-t pt-3">{replaceTrigger}</div>
+        )}
       </CardContent>
     </Card>
   );
